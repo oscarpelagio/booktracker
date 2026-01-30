@@ -1,12 +1,14 @@
-from fastapi import FastAPI, Depends
-# from sqlalchemy.orm import Session
-# from . import models, database
+from fastapi import FastAPI
+from app.core.database import engine, Base
+from app.api.v1.router import api_router
 
-# # 1. Crear tablas en BBDD al iniciar (Magia de SQLAlchemy)
-# models.Base.metadata.create_all(bind=database.engine)
-
+# En un futuro estas migraciones se harán con Alembic
+Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Book Tracker API")
 
-@app.get("/")
-def read_root():
-    return {"status": "ok", "message": "El sistema está online 🚀"}
+app.include_router(api_router)
+
+# Raiz del back
+@app.get("/", tags=["Backend"])
+def status(): 
+    return {"status": "ok", "message": "Running"}

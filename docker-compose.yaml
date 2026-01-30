@@ -6,13 +6,13 @@ services:
     env_file:
       - .env
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5433:5432"
 
   api:
     build: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./backend/app:/code/app
+      - ./backend:/code
     ports:
       - "${API_PORT}:8000"
     depends_on:
