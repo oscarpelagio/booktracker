@@ -1,6 +1,5 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlmodel import SQLModel, create_engine, Session
 
 # Credenciales del .env
 user = os.getenv("POSTGRES_USER")
@@ -11,6 +10,13 @@ db_name = os.getenv("POSTGRES_DB")
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)

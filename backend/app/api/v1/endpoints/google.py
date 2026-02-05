@@ -1,24 +1,25 @@
-from fastapi import APIRouter, HTTPException, Query
-import httpx
+from fastapi import APIRouter, Query, Depends
+from sqlmodel import Session
+from app.core.db import get_session
+from app.services.book_service import BookService
+from app.crud.book_repository import BookRepository
+from app.models.book import Book
 
-router = APIRouter(tags=["Google Books API"])
+router = APIRouter()
 
-GOOGLE_BOOKS_URL = "https://www.googleapis.com/books/v1/volumes"
 
-# Búsqueda de un libro por título y autor
-@router.get("/search")
-async def search(title: str = Query(...), author: str = Query(...)):
-    async with httpx.AsyncClient() as client:
-        q = f"intitle:{title}+inauthor:{author}"        
-        resp = await client.get(GOOGLE_BOOKS_URL, params={"q": q, "maxResults": 1})
-        data = resp.json()
+# Función auxiliar para inyectar el servicio
+def get_book_service(db: Session = Depends(get_session)) -> BookService:
+    repo = BookRepository(db)
+    return BookService(repo)
 
-    if "items" not in data:
-        raise HTTPException(status_code=404, detail="Libro no encontrado")
-    
-    volume = data["items"][0]["volumeInfo"]
-    return {
-        "title": volume.get("title"),
-        "author": ", ".join(volume.get("authors", ["Desconocido"])),
-        "isbn": next((i["identifier"] for i in volume.get("industryIdentifiers", []) if i["type"] == "ISBN_13"), "Sin ISBN")
-    }
+
+@router.get("/search-by-title", response_model=Book)
+async def search_by_title(
+    title: str = Query(...), service: BookService = Depends(get_book_service)
+):
+    """
+    Busca por título. El servicio se encarga de buscar en Google
+    y guardar en local si es necesario.
+    """
+    return await service.search_and_process(title)

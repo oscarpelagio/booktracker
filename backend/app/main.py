@@ -1,14 +1,17 @@
 from fastapi import FastAPI
-from app.core.database import engine, Base
+from contextlib import asynccontextmanager
+from app.core.db import create_db_and_tables
 from app.api.v1.router import api_router
 
-# En un futuro estas migraciones se harán con Alembic
-Base.metadata.create_all(bind=engine)
-app = FastAPI(title="Book Tracker API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+app = FastAPI(title="Book Tracker API", lifespan=lifespan)
 
 app.include_router(api_router)
 
-# Raiz del back
 @app.get("/", tags=["Backend"])
-def status(): 
+def status():
     return {"status": "ok", "message": "Running"}

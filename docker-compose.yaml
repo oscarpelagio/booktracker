@@ -1,6 +1,8 @@
 services:
   db:
-    image: postgis/postgis:15-3.3-alpine
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
@@ -8,17 +10,18 @@ services:
     ports:
       - "5433:5432"
 
-  api:
+  backend:
+    container_name: backend
     build: ./backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./backend:/code
+      - ./backend:/app
+    restart: always
     ports:
       - "${API_PORT}:8000"
     depends_on:
       - db
     env_file:
-      - .env
+      - ./.env
 
 volumes:
   postgres_data:
