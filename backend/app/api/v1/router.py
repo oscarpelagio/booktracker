@@ -1,7 +1,8 @@
+"""Rutes principals de l'API."""
+
 from fastapi import APIRouter
-from app.api.v1.endpoints import google  # Importamos el archivo de endpoints
+from app.api.v1.endpoints import router as google_router
 
 api_router = APIRouter()
 
-# Registro de rutas
-api_router.include_router(google.router, prefix="/google", tags=["Google Books API"])
+api_router.include_router(google_router, prefix="/google", tags=["Google Books API"])

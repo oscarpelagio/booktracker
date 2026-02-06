@@ -1,25 +1,29 @@
+"""Endpoints de l'API per a Google Books."""
+
 from fastapi import APIRouter, Query, Depends
 from sqlmodel import Session
+
 from app.core.db import get_session
-from app.services.book_service import BookService
-from app.crud.book_repository import BookRepository
-from app.models.book import Book
+from app.crud import BookRepository
+from app.schemas import BookResponse
+from app.services import BookService
 
 router = APIRouter()
 
 
-# Función auxiliar para inyectar el servicio
 def get_book_service(db: Session = Depends(get_session)) -> BookService:
+    """Obté el servei de llibres amb el repositori injectat."""
     repo = BookRepository(db)
     return BookService(repo)
 
 
-@router.get("/search-by-title", response_model=Book)
+@router.get("/search-by-title", response_model=list[BookResponse])
 async def search_by_title(
-    title: str = Query(...), service: BookService = Depends(get_book_service)
-):
+    title: str = Query(..., description="Títol del llibre a cercar"),
+    service: BookService = Depends(get_book_service),
+) -> list[BookResponse]:
     """
-    Busca por título. El servicio se encarga de buscar en Google
-    y guardar en local si es necesario.
+    Cerca llibres per títol.
     """
-    return await service.search_and_process(title)
+    books = await service.search_and_process(title)
+    return [BookResponse.model_validate(book) for book in books]
