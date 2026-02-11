@@ -399,4 +399,4 @@ Aquest projecte està sota la llicència MIT.
 
 ## 👤 Autor
 
-Desenvolupat amb ❤️ per l'equip de Book Tracker.
+Desenvolupat amb ❤️ per BookTrackers.

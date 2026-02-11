@@ -2,8 +2,7 @@
 
 import unicodedata
 import re
-from sqlmodel import Session, select, func
-
+from sqlmodel import Session, select
 from app.models import Book
 
 
@@ -14,12 +13,6 @@ class BookRepository:
     def create(self, book_data: Book) -> Book:
         """
         Crea un llibre nou. Si ja existeix (títol+autor normalitzats), retorna l'existent.
-        
-        Args:
-            book_data: Dades del llibre a crear
-            
-        Returns:
-            Llibre creat o l'existent si ja hi és
         """
         # Comprova si el llibre ja existeix per títol+autor normalitzats
         existing_book = self.find_by_title_author(
@@ -38,24 +31,12 @@ class BookRepository:
     def find_by_title_author(self, title: str, author: str) -> Book | None:
         """
         Cerca un llibre per títol i autor amb normalització.
-        
-        Compara els títols i autors normalitzats (minúscules, sense accents, etc.)
-        però els guarda originals a la base de dades.
-        
-        Args:
-            title: Títol del llibre
-            author: Autor del llibre
-            
-        Returns:
-            Llibre trobat o None si no existeix
         """
         # Normalitza el títol i autor per comparar
         normalized_title = self._normalize_text(title)
         normalized_author = self._normalize_text(author)
         
         # Busca tots els llibres i compara normalitzat
-        # Nota: En una app gran, fariem la normalització a la BD amb un índex
-        # Però per ara fem la comparació en Python
         statement = select(Book)
         result = self.db.exec(statement)
         books = result.all()
@@ -70,18 +51,6 @@ class BookRepository:
     def _normalize_text(self, text: str) -> str:
         """
         Normalitza text per comparació de duplicats.
-        
-        Transformacions:
-        - Minúscules
-        - Elimina accents (á → a, é → e, etc.)
-        - Elimina espais extra
-        - Elimina puntuació (!?.,; etc.)
-        
-        Args:
-            text: Text a normalitzar
-            
-        Returns:
-            Text normalitzat per comparació
         """
         if not text:
             return ""
@@ -89,15 +58,15 @@ class BookRepository:
         # Minúscules
         text = text.lower()
         
-        # Elimina accents (NFD + filtra caràcters no ASCII + NFC)
+        # Accents (NFD + filtra caràcters no ASCII + NFC)
         text = unicodedata.normalize('NFD', text)
         text = ''.join(char for char in text if unicodedata.category(char) != 'Mn')
         text = unicodedata.normalize('NFC', text)
         
-        # Elimina puntuació: ! ? ¿ ¡ . , ; : ( ) [ ] { } " ' 
+        # Puntuació: ! ? ¿ ¡ . , ; : ( ) [ ] { } " ' 
         text = re.sub(r'[!?¿¡.,;:\(\)\[\]{}"\']+', '', text)
         
-        # Elimina espais al principi i final, i espais múltiples
+        # Espais al principi i final, i espais múltiples
         text = ' '.join(text.split())
         
         return text.strip()

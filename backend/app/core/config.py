@@ -12,14 +12,12 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
     
-    # Base de dades PostgreSQL
     postgres_user: str
     postgres_password: str
     postgres_host: str = "db"
     postgres_port: int = 5432
     postgres_db: str
     
-    # API
     api_port: int = 8000
     
     # Google Books API
@@ -33,6 +31,4 @@ class Settings(BaseSettings):
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
-
-# Instància singleton de la configuració
 settings = Settings()

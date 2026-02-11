@@ -10,12 +10,10 @@ from app.services import BookService
 
 router = APIRouter()
 
-
 def get_book_service(db: Session = Depends(get_session)) -> BookService:
     """Obté el servei de llibres amb el repositori injectat."""
     repo = BookRepository(db)
     return BookService(repo)
-
 
 @router.get("/search-by-title", response_model=list[BookResponse])
 async def search_by_title(

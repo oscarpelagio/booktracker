@@ -3,51 +3,26 @@
 import logging
 from fastapi import HTTPException
 
-from app.clients import GoogleBooksClient, get_google_books_client
-from app.crud import BookRepository
-from app.models import Book
+from clients import GoogleBooksClient, get_google_books_client
+from crud import BookRepository
+from models import Book
 
 logger = logging.getLogger(__name__)
 
 
 class BookService:
-    """
-    Servei per gestionar la lògica de negoci dels llibres.
-    
-    Aquest servei s'encarrega de:
-    - Cercar llibres a Google Books API (fins a 10 resultats)
-    - Persistir llibres a la base de dades
-    - Gestionar duplicats per títol+autor normalitzats
-    """
 
     def __init__(
         self, 
         db_repo: BookRepository, 
-        google_client: GoogleBooksClient | None = None
+        google_client: GoogleBooksClient
     ):
-        """
-        Inicialitza el servei amb les dependències necessàries.
-        
-        Args:
-            db_repo: Repositori per accedir a la base de dades
-            google_client: Client de Google Books (opcional, usa singleton per defecte)
-        """
+
         self.repo = db_repo
-        self.google_client = google_client or get_google_books_client()
+        self.google_client = google_client
 
     async def search_and_process(self, query: str) -> list[Book]:
-        """
-        Cerca llibres i els processa (fins a 10 resultats).
-        
-        Args:
-            query: Terme de cerca
-            
-        Returns:
-            Llista de llibres trobats o guardats (màxim 10)
-            
-        Raises:
-            HTTPException: Si no es troben llibres (404) o hi ha error de connexió (503)
-        """
+
         try:
             results = await self.google_client.search_books(query)
         except Exception as e:
@@ -63,7 +38,6 @@ class BookService:
                 detail="Llibres no trobats a Google"
             )
 
-        # Guarda tots els llibres (fins a 10)
         saved_books = []
         for book_data in results:
             try:

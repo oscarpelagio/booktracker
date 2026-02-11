@@ -6,8 +6,8 @@ from typing import Self
 import httpx
 from datetime import date
 
-from app.core.config import settings
-from app.schemas import BookBase as Book
+from core.config import settings
+from schemas import BookBase as Book
 
 
 class GoogleBooksClient:
@@ -48,16 +48,6 @@ class GoogleBooksClient:
     async def search_books(self, query: str, max_results: int = 10) -> list[Book]:
         """
         Cerca llibres a Google Books API.
-        
-        Args:
-            query: Terme de cerca
-            max_results: Nombre màxim de resultats (1-10, màxim de Google)
-            
-        Returns:
-            Llista de llibres trobats
-            
-        Raises:
-            httpx.HTTPError: Si hi ha error en la petició HTTP
         """
         # Google Books API màxim = 10 resultats per petició
         params = {
